@@ -16,15 +16,18 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
-     #- docker build --platform linux/amd64 -t $REPOSITORY_URI:latest .
-      - docker build -t $REPOSITORY_URI:latest .
+      - docker build --platform linux/amd64 -t $REPOSITORY_URI:latest .
+     #- docker build -t $REPOSITORY_URI:latest .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
   post_build:
     commands:
       - echo Build completed on `date`
       - echo Pushing the Docker images...
-      - docker push $REPOSITORY_URI:latest
-      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      #- docker push $REPOSITORY_URI:latest
+      #- docker push $REPOSITORY_URI:$IMAGE_TAG
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
+      - echo Pushing Docker image...
+      - docker push $REPOSITORY_URI:$IMAGE_TAG > docker_push.log 2>&1 || cat docker_push.log
       - echo Writing image definitions file...
       - printf '[{"name":"simple-app","imageUri":"%s"}]'
         $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
