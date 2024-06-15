@@ -8,7 +8,7 @@ phases:
       # - $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
       - aws ecr get-login-password --region ap-southeast-1 | docker login
         --username AWS --password-stdin
-        916495840179.dkr.ecr.ap-southeast-1.amazonaws.com
+        767398081587.dkr.ecr.ap-southeast-1.amazonaws.com
       - REPOSITORY_URI=767398081587.dkr.ecr.ap-southeast-1.amazonaws.com/demo
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
@@ -17,17 +17,16 @@ phases:
       - echo Build started on `date`
       - echo Building the Docker image...
       - docker build --platform linux/amd64 -t $REPOSITORY_URI:latest .
-     #- docker build -t $REPOSITORY_URI:latest .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
   post_build:
     commands:
       - echo Build completed on `date`
       - echo Pushing the Docker images...
-      #- docker push $REPOSITORY_URI:latest
-      #- docker push $REPOSITORY_URI:$IMAGE_TAG
-      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
-      - echo Pushing Docker image...
-      - docker push $REPOSITORY_URI:$IMAGE_TAG > docker_push.log 2>&1 || cat docker_push.log
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      #- aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
+      #- echo Pushing Docker image...
+      #- docker push $REPOSITORY_URI:$IMAGE_TAG > docker_push.log 2>&1 || cat docker_push.log
       - echo Writing image definitions file...
       - printf '[{"name":"simple-app","imageUri":"%s"}]'
         $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
